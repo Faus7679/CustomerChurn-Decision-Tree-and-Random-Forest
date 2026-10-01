@@ -14,7 +14,8 @@ def test_prepare_data_removes_identifier_and_converts_total_charges():
     )
     features, target = prepare_data(frame)
     assert "customerID" not in features
-    assert features["TotalCharges"].tolist() == [10.5, float("nan")]
+    assert features["TotalCharges"].iloc[0] == 10.5
+    assert pd.isna(features["TotalCharges"].iloc[1])
     assert target.tolist() == [1, 0]
 
 

@@ -14,7 +14,6 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import (
     ConfusionMatrixDisplay,
     accuracy_score,
-    classification_report,
     confusion_matrix,
     f1_score,
     precision_score,
@@ -128,7 +127,7 @@ def evaluate_models(
 
 
 def make_visualizations(
-    data: pd.DataFrame,
+    test_features: pd.DataFrame,
     y_test: pd.Series,
     fitted: dict[str, Pipeline],
     output: Path,
@@ -144,7 +143,7 @@ def make_visualizations(
 
     fig, ax = plt.subplots(figsize=(7, 5))
     for name, model in fitted.items():
-        RocCurveDisplay.from_estimator(model, data[0], y_test, name=name, ax=ax)
+        RocCurveDisplay.from_estimator(model, test_features, y_test, name=name, ax=ax)
     ax.set_title("ROC curves (held-out test set)")
     fig.tight_layout()
     fig.savefig(output / "roc_curves.png", dpi=160)
@@ -152,7 +151,9 @@ def make_visualizations(
 
     fig, axes = plt.subplots(2, 2, figsize=(10, 8))
     for axis, (name, model) in zip(axes.ravel(), fitted.items()):
-        ConfusionMatrixDisplay.from_estimator(model, data[0], y_test, display_labels=["Stayed", "Churned"], ax=axis)
+        ConfusionMatrixDisplay.from_estimator(
+            model, test_features, y_test, display_labels=["Stayed", "Churned"], ax=axis
+        )
         axis.set_title(name)
     fig.tight_layout()
     fig.savefig(output / "confusion_matrices.png", dpi=160)
@@ -184,7 +185,7 @@ def run(input_csv: str | Path, output_dir: str | Path = "outputs", random_state:
     models = make_models(make_preprocessor(features))
     metrics, fitted = evaluate_models(models, x_train, x_test, y_train, y_test)
     output = Path(output_dir)
-    make_visualizations((x_test, y_test), y_test, fitted, output)
+    make_visualizations(x_test, y_test, fitted, output)
     results = {
         "rows": len(frame),
         "test_rows": len(x_test),
